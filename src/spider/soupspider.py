@@ -43,7 +43,10 @@ class SoupSpider():
         print(soup.a)
         # print(soup.find_all('a'))
         print(soup.find(id='link3'))
+        print("====================================================================================================")
         print(soup.get_text())
+        print("====================================================================================================")
+        print(soup.find("body").get_text())
 
         return result
 
