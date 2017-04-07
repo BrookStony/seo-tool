@@ -1,16 +1,15 @@
 import jieba
-from operator import itemgetter, attrgetter
 
-class PageKeywordStat():
+class KeywordEngine():
 
-    def stat_keywords(self, url, page, keywords):
-        print("<stat_keywords> ur: " + url + ", keywords=" + str(keywords))
-        exact_match_map = {}
-        phrase_match_map = {}
+    def stat_page_keywords(self, url, page, keywords):
+        """统计页面关键词
+        """
+        print("<stat_page_keywords> url: " + url + ", keywords=" + str(keywords))
         match_keywords = []
         not_match_keywords = []
         try:
-            # print(page_text)
+
             lines = []
             split_lines = page.splitlines()
             for line in split_lines:
@@ -18,6 +17,8 @@ class PageKeywordStat():
                 if '' != line:
                     lines.append(line)
 
+            exact_match_map = {}
+            phrase_match_map = {}
             for keyword in keywords:
                 keyword_times = 0
                 for line in lines:
@@ -38,27 +39,21 @@ class PageKeywordStat():
             print(phrase_match_map)
             print(not_match_keywords)
             match_keywords = self.sort_keywords(exact_match_map)
-            phrase_match_list = self.sort_keywords(phrase_match_map)
-            match_keywords.extend(phrase_match_list)
+            phrase_match_keywords = self.sort_keywords(phrase_match_map)
+            match_keywords.extend(phrase_match_keywords)
         except Exception as e:
             print(e)
         return match_keywords, not_match_keywords
 
-    def sort_keywords(self, match_map):
+    def sort_keywords(self, keywords_map):
         keywords = []
         keywords_list = []
-        for (k, v) in match_map.items():
+        for (k, v) in keywords_map.items():
             keywords_list.append((k, v))
-        print("=======1==========")
-        print(keywords_list)
-        # sorted(keywords_list, key=itemgetter(1), reverse=True)
+        # 排序
         keywords_list.sort(key=lambda x: x[1], reverse=True)
-        print("=========2========")
-        # keywords_list.sort()
-        print(keywords_list)
         for words in keywords_list:
             keywords.append(words[0])
-        print(keywords)
         return keywords
 
     # 短语匹配

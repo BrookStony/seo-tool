@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 # from bs4 import
 import xlrd
 import xlwt
-from src.keyword.pagekeywordstat import PageKeywordStat
+from src.spider.keywordengine import KeywordEngine
 
 class SeoSpider():
 
@@ -18,7 +18,7 @@ class SeoSpider():
         wb = xlrd.open_workbook(file)
         sheet = wb.sheet_by_name(sheet_name)
         urls = []
-        cols_count = sheet.ncols
+        # cols_count = sheet.ncols
         rows_count = sheet.nrows
         for i in range(1, rows_count):
             # row_data = []
@@ -26,13 +26,6 @@ class SeoSpider():
             #     row_data[j] = sheet.cell(i, j).value
             url = sheet.cell(i, 8).value
             urls.append(url)
-            # print(url)
-            # protocol, rest = urllib.parse.splittype(url)
-            # print(rest)
-            # domain, rest = urllib.parse.splithost(rest)
-            # print(rest)
-            # print(protocol)
-            # print(domain)
         return urls
 
      # 输出excel
@@ -84,7 +77,8 @@ class SeoSpider():
 
     def analyse(self, domain, url, params, keywords):
         """分析页面"""
-        result = {'page_title': '', 'meta_keywords': '', 'meta_description': '', 'match_keywords': [], 'keywords': []}
+        result = {'page_title': '', 'meta_keywords': '', 'meta_description': '',
+                  'match_keywords': [], 'not_match_keywords': []}
         try:
             header = {"User-Agent": "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.1) Gecko/20090624 Firefox/3.5",
                  "Accept": "text/plain"}
@@ -100,9 +94,9 @@ class SeoSpider():
             meta_list = soup.find_all('meta')
             for tag in meta_list:
                 if 'name' in tag.attrs:
-                    if tag.attrs['name'] == "keywords":
+                    if tag.attrs['name'].lower() == "keywords":
                         result['meta_keywords'] = tag.attrs['content']
-                    elif tag.attrs['name'] == "description":
+                    elif tag.attrs['name'].lower() == "description":
                         result['meta_description'] = tag.attrs['content']
 
             # 分析链接
@@ -133,13 +127,10 @@ class SeoSpider():
 
             # 统计关键词
             page_text = soup.find("body").get_text()
-            page_keyword_stat = PageKeywordStat()
-            page_keyword_stat.stat_keywords(url, page_text, keywords)
-            # print(page_text)
-            # lines = page_text.splitlines()
-            # for line in lines:
-            #     if '' != line.strip():
-            #         print("line=" + line.strip())
+            ke = KeywordEngine()
+            match_keywords, not_match_keywords = ke.stat_page_keywords(url, page_text, keywords)
+            result['match_keywords'] = match_keywords
+            result['not_match_keywords'] = not_match_keywords
         except Exception as e:
             print(e)
         return result
@@ -188,6 +179,10 @@ class SeoSpider():
                     url_keywords_map.setdefault(sp_url, [keyword])
 
         print(url_keywords_map)
+        urls = []
+        for key in url_keywords_map.keys():
+            urls.append(key)
+        urls.sort()
 
         titles = [u'序号', u'关键词', u'页面模板', u'目标页URL',
                   u'Page Title(原)', u'Page Title(新)',
@@ -196,15 +191,16 @@ class SeoSpider():
                   u'与页面不符关键词']
         data_list = []
         n = 0
-        for url in url_keywords_map:
+        for url in urls:
+            n += 1
             print(url)
             keywords = url_keywords_map.get(url)
             protocol, rest = urllib.parse.splittype(url)
             domain, rest = urllib.parse.splithost(rest)
             result = self.analyse(domain, url, {}, keywords)
             data = []
-            data.insert(0, n + 1)
-            data.insert(1, '')
+            data.insert(0, n)
+            data.insert(1, "\n".join(result['match_keywords']))
             data.insert(2, '')
             data.insert(3, url)
             data.insert(4, result['page_title'])
@@ -213,7 +209,7 @@ class SeoSpider():
             data.insert(7, '')
             data.insert(8, result['meta_description'])
             data.insert(9, '')
-            data.insert(10, "\n".join(keywords))
+            data.insert(10, "\n".join(result['not_match_keywords']))
             data_list.append(data)
 
         self.write_excel(out_excel, sheet_name, titles, data_list)
@@ -222,23 +218,18 @@ class SeoSpider():
     def analyse_website(self, domain, url, out_excel, sheet_name):
         titles = [u'序号', u'URL', u'Page Title', u'Meta Keywords', u'Meta Description', u'关键词', u'链接数量']
         data_list = []
-        result = self.analyse(domain, url, {}, [])
-            # data = []
-            # data.insert(0, 0)
-            # data.insert(1, url)
-            # data.insert(2, result['title'])
-            # data.insert(3, result['keywords'])
-            # data.insert(4, result['description'])
-            # data.insert(5, '')
-            # data.insert(6, '')
-            # data_list.append(data)
-
         self.write_excel(out_excel, sheet_name, titles, data_list)
 
 spider = SeoSpider()
-#spider.analyse_excel_pages("D:\dev\python\seo-tool\conf\IBM Landing Page.xls", 'D:\dev\python\seo-tool\conf\demo.xls', "Cloud")
-spider.analyse_pages_keywords("D:\dev\python\seo-tool\conf\GCG All Keywords.xls",
-                              "D:\dev\python\seo-tool\conf\Keywords_Pages_LA.xls", "LA")
+#spider.analyse_excel_pages("D:\dev\python\seo-tool\conf\IBM Landing Page.xls", 'D:\dev\python\seo-tool\out\demo.xls', "Cloud")
+# spider.analyse_pages_keywords("D:\dev\python\seo-tool\conf\GCG LA Keywords.xls",
+#                               "D:\dev\python\seo-tool\out\SEOSpider_Page_Keywords_LA.xls", "LA")
+
+spider.analyse_pages_keywords("D:\dev\python\seo-tool\conf\GCG All Keywords.xlsx",
+                              "D:\dev\python\seo-tool\out\SEOSpider_Page_Keywords_Cloud.xls", "cloud")
+
+# spider.analyse_pages_keywords("D:\dev\python\seo-tool\conf\GCG All Keywords.xlsx",
+#                               "D:\dev\python\seo-tool\out\SEOSpider_Page_Keywords_System.xls", "Systems")
 
 # result = spider.analyse("www.ibm.com", "http://www-31.ibm.com/ibm/cn/cognitive/outthink/", {})
 # # result = spider.analyse("www.ibm.com", "https://www.ibm.com/analytics/cn/zh/technology/", {})
