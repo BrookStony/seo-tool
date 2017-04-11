@@ -77,8 +77,11 @@ class SeoSpider():
 
     def analyse(self, domain, url, params, keywords):
         """分析页面"""
+        print("<analyse> url: " + url)
+
         result = {'page_title': '', 'meta_keywords': '', 'meta_description': '',
                   'match_keywords': [], 'not_match_keywords': []}
+
         try:
             header = {"User-Agent": "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.1) Gecko/20090624 Firefox/3.5",
                  "Accept": "text/plain"}
@@ -88,7 +91,9 @@ class SeoSpider():
             content = response.read()
 
             soup = BeautifulSoup(content.decode('utf8'))
-            result['page_title'] = soup.title.string
+            print(soup.title)
+            if soup.title:
+                result['page_title'] = soup.title.string
 
             # 分析meta标签获取页面keywords和description
             meta_list = soup.find_all('meta')
@@ -105,18 +110,28 @@ class SeoSpider():
             u_domain, rest = urllib.parse.splithost(rest)
 
             link_list = soup.find_all('a')
+            print("link_list count: " + str(len(link_list)))
             for tag in link_list:
                 # print(tag.get_text())
                 if 'href' in tag.attrs:
                     link = tag.attrs['href']
                     # print("href=" + link)
                     if link:
+                        if 'mailto:' in link or 'tel:' in link:
+                            continue
+                        if 'javascript:' in link or '#' == link:
+                            continue
                         sp_url, sp_query = urllib.parse.splitquery(link)
                         # 相对路径URL补全协议和domain
                         if str(sp_url).startswith("//"):
                             sp_url = u_protocol + ":" + sp_url
                         elif str(sp_url).startswith("/"):
                             sp_url = u_protocol + "://" + u_domain + sp_url
+                        elif ':' not in sp_url:
+                            if url.endswith("/"):
+                                sp_url = url + sp_url
+                            else:
+                                sp_url = url + "/" + sp_url
 
                         if sp_url != url and domain in sp_url and sp_url not in urls:
                             urls.append(sp_url)
@@ -197,11 +212,13 @@ class SeoSpider():
             keywords = url_keywords_map.get(url)
             protocol, rest = urllib.parse.splittype(url)
             domain, rest = urllib.parse.splithost(rest)
+            if url != "http://www-03.ibm.com/software/products/zh/ibm-security-guardium-family":
+                continue
             result = self.analyse(domain, url, {}, keywords)
             data = []
             data.insert(0, n)
             data.insert(1, "\n".join(result['match_keywords']))
-            data.insert(2, '')
+            data.insert(2, result['page_title'])
             data.insert(3, url)
             data.insert(4, result['page_title'])
             data.insert(5, '')
@@ -226,7 +243,10 @@ spider = SeoSpider()
 #                               "D:\dev\python\seo-tool\out\SEOSpider_Page_Keywords_LA.xls", "LA")
 
 spider.analyse_pages_keywords("D:\dev\python\seo-tool\conf\GCG All Keywords.xlsx",
-                              "D:\dev\python\seo-tool\out\SEOSpider_Page_Keywords_Cloud.xls", "cloud")
+                              "D:\dev\python\seo-tool\out\SEOSpider_Page_Keywords_Security.xls", "Security")
+
+# spider.analyse_pages_keywords("D:\dev\python\seo-tool\conf\GCG All Keywords.xlsx",
+#                               "D:\dev\python\seo-tool\out\SEOSpider_Page_Keywords_Cloud.xls", "cloud")
 
 # spider.analyse_pages_keywords("D:\dev\python\seo-tool\conf\GCG All Keywords.xlsx",
 #                               "D:\dev\python\seo-tool\out\SEOSpider_Page_Keywords_System.xls", "Systems")

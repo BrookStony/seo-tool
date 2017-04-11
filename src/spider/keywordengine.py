@@ -9,7 +9,6 @@ class KeywordEngine():
         match_keywords = []
         not_match_keywords = []
         try:
-
             lines = []
             split_lines = page.splitlines()
             for line in split_lines:
@@ -26,15 +25,16 @@ class KeywordEngine():
                     if keyword in line:
                         keyword_times += 1
                 if keyword_times > 0:
-                    exact_match_map.setdefault(keyword, keyword_times)
+                    exact_match_map[keyword] = keyword_times
                 else:
                     keyword_times = self.phrase_match(lines, keyword)
                     if keyword_times > 1:
                         print("phraseMatch=" + keyword)
-                        phrase_match_map.setdefault(keyword, keyword_times)
+                        phrase_match_map[keyword] = keyword_times
                     else:
                         not_match_keywords.append(keyword)
 
+            lines.clear()
             print(exact_match_map)
             print(phrase_match_map)
             print(not_match_keywords)

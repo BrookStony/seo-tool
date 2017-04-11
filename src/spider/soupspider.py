@@ -1,6 +1,7 @@
 import urllib.parse
 import urllib.request
 from bs4 import BeautifulSoup
+import re
 
 class SoupSpider():
 
@@ -44,9 +45,22 @@ class SoupSpider():
         # print(soup.find_all('a'))
         print(soup.find(id='link3'))
         print("====================================================================================================")
-        print(soup.get_text())
+        # print(soup.get_text())
+        [script.extract() for script in soup.findAll('script')]
+        [style.extract() for style in soup.findAll('style')]
+        soup.prettify()
+        regex = re.compile("<[^>]*>")
+        content = regex.sub('', soup.prettify())
+        # print(content)
         print("====================================================================================================")
-        print(soup.find("body").get_text())
+        # print(soup.find("body").get_text())
+        body = soup.find("body")
+        [script.extract() for script in body.findAll('script')]
+        [style.extract() for style in body.findAll('style')]
+        body.prettify()
+        regex = re.compile("<[^>]*>")
+        content = regex.sub('', body.prettify())
+        print(content)
 
         return result
 
