@@ -238,12 +238,14 @@ class SeoSpider():
         self.write_excel(out_excel, sheet_name, titles, data_list)
 
 spider = SeoSpider()
+spider.analyse_excel_pages("D:\dev\python\seo-tool\conf\IBM Analytics Landing Page.xls",
+                           'D:\dev\python\seo-tool\out\IBM Analytics TDK.xls', "URL")
 #spider.analyse_excel_pages("D:\dev\python\seo-tool\conf\IBM Landing Page.xls", 'D:\dev\python\seo-tool\out\demo.xls', "Cloud")
 # spider.analyse_pages_keywords("D:\dev\python\seo-tool\conf\GCG LA Keywords.xls",
 #                               "D:\dev\python\seo-tool\out\SEOSpider_Page_Keywords_LA.xls", "LA")
 
-spider.analyse_pages_keywords("D:\dev\python\seo-tool\conf\GCG All Keywords.xlsx",
-                              "D:\dev\python\seo-tool\out\SEOSpider_Page_Keywords_Security.xls", "Security")
+# spider.analyse_pages_keywords("D:\dev\python\seo-tool\conf\GCG All Keywords.xlsx",
+#                               "D:\dev\python\seo-tool\out\SEOSpider_Page_Keywords_Security.xls", "Security")
 
 # spider.analyse_pages_keywords("D:\dev\python\seo-tool\conf\GCG All Keywords.xlsx",
 #                               "D:\dev\python\seo-tool\out\SEOSpider_Page_Keywords_Cloud.xls", "cloud")
